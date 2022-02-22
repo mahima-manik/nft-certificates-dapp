@@ -17,6 +17,8 @@ module.exports = async function(callback) {
 
     try {
         await instance.issue_certificate(accounts[1], nftAddress, "https://ipfs.io/ipfs/QmaZmECGK1fUyuVtp6VJHjBBPgcETGnN6fS2AsDcGLsXBV", {from: accounts[0]});
+        await instance.issue_certificate(accounts[2], nftAddress, "https://ipfs.io/ipfs/QmaZmECGK1fUyuVtp6VJHjBBPgcETGnN6fS2AsDcGLsXBV", {from: accounts[0]});
+        await instance.issue_certificate(accounts[3], nftAddress, "https://ipfs.io/ipfs/QmaZmECGK1fUyuVtp6VJHjBBPgcETGnN6fS2AsDcGLsXBV", {from: accounts[0]});
         console.log("Issued a new token for contract address: ", nftAddress);
     } catch (error) {
         console.log(error);
