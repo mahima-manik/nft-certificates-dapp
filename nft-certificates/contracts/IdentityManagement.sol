@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.12;
 
-//import "./Certificate.sol";
 import "./Certificate.sol";
 
 contract IdentityManagement {
 
     event certificateAdded(address certificateAddress);
-    mapping (address => address) certsToOwners;
-
-
+    mapping (address => address) public certsToOwners;
+    
     function add_certificate(string memory _name, string memory _symbol) external returns(address) {
         Certificate cert = new Certificate(_name, _symbol); // returns bytecode
         // Not storing bytecode, as it will become expensive
