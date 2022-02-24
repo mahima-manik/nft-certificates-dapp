@@ -8,11 +8,9 @@ import styles from '../styles/NftCertificate.module.css'
 
 const NFTCertificate = () => {
     const [connectWalletError, setConnectWalletError] = useState('')
-    const [nftContractsError, setNftContractsError] = useState('')
-    const [createNftError, setCreateNftError] = useState('')
-    const [createNftSuccess, setCreateNftSuccess] = useState('')
-    const [issueNftError, setIssueNftError] = useState('')
-    const [issueNftSuccess, setIssueNftSuccess] = useState('')
+    const [nftContractsMessage, setNftContractsMessage] = useState('')
+    const [createNftMessage, setCreateNftMessage] = useState('')
+    const [issueNftMessage, setIssueNftMessage] = useState('')
     const [nftContracts, setNftContracts] = useState([])
     const [tokenName, setTokenName] = useState('')
     const [tokenSymbol, setTokenSymbol] = useState('')
@@ -31,7 +29,15 @@ const NFTCertificate = () => {
         return arr.map(x => x[column])
     }
 
+    function updateText (id, status, message) {
+        document.getElementById(id).className = 'container has-text-'+status
+        const funName = 'set' + id;
+        console.log("Fun name is ", funName)
+        eval(funName)(message);
+    }
+    
     const getNftContracts = async () => {
+        updateText ('NftContractsMessage', 'danger')
         if (web3 == 'undefined') await connectWalletHandler()
         
         try {
@@ -53,10 +59,11 @@ const NFTCertificate = () => {
                 result.push(extractColumn(array, i))
             }
             setNftContracts(result)
-            setNftContractsError('')
+            updateText('NftContractsMessage', 'info', '')
+            
         } catch (error) {
             console.log('Error fetching NFT addresses', error)
-            setNftContractsError(error.message)
+            updateText('NftContractsMessage', 'danger', error.message)
         }
     }
 
@@ -111,31 +118,29 @@ const NFTCertificate = () => {
     }
 
     const createNftHandler = async() => {
-        setIssueNftError('')
-        setIssueNftSuccess('')
-        setCreateNftError('')
-        setCreateNftSuccess('Please wait...')
+        updateText('IssueNftMessage', 'info', '')
+        updateText('CreateNftMessage', 'info', 'Please wait...')
         if (web3 == 'undefined') await connectWalletHandler()
         
         try {
             const result = await myContract.methods.create_nft(tokenName, tokenSymbol).send({from: address, gasLimit: 25000000})
             console.log(result)
             console.log(result.events)
-            console.log(result.events['tokenAddress'])
-            setCreateNftError('')
-            setCreateNftSuccess('Created NFT Contract at: ' + result.events['tokenAddress'])
+            const tokenAddress = result.events['NftCreated'].returnValues['tokenAddress']
+            console.log(tokenAddress)
+            updateText('CreateNftMessage', 'success', 'Created NFT Contract at: ' + tokenAddress)
             await getNftContracts()
         } catch (error) {
-            setCreateNftError('Error creating NFT contract: ' + error.message)
-            setCreateNftSuccess('')
+            updateText('CreateNftMessage', 'danger', 'Error creating NFT contract: ' + error.message)
         }
     }
 
     const issueNftHandler = async () => {
-        setIssueNftError('')
-        setIssueNftSuccess('Please wait...')
-        setCreateNftError('')
-        setCreateNftSuccess('')
+        updateText('CreateNftMessage', 'info', '')
+        updateText('IssueNftMessage', 'info', 'Please wait...')
+        console.log(document.getElementById('issueNftResult').className)
+        // document.getElementById('issueNftResult').className.replace('', 'has-text-danger');
+        // document.getElementById('issueNftResult').addClass('has-text-success');
         if (web3 == 'undefined') await connectWalletHandler()
         
         try {
@@ -145,12 +150,10 @@ const NFTCertificate = () => {
             const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
             const tokenId = result.events['NftIssued'].returnValues['tokenId']
             console.log(tokenAddress)
-            setIssueNftError('')
-            setIssueNftSuccess('Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
+            updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
             await getNftContracts()
         } catch (error) {
-            setIssueNftError('Error issuing NFT: ' + error.message)
-            setIssueNftSuccess('')
+            updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
         }
     }
 
@@ -201,8 +204,8 @@ const NFTCertificate = () => {
               </div>
               <div className='container mt-2'>
                   <button onClick={getNftContracts} className='button is-primary'>Get tokens</button>
-                  <div className='container has-text-danger'>
-                    <p>{nftContractsError}</p>
+                  <div id='NftContractsMessage' className='container has-text-info'>
+                    <p>{nftContractsMessage}</p>
                   </div>
               </div>
           </section>
@@ -221,11 +224,8 @@ const NFTCertificate = () => {
                       </div>
                    </div>
                    <button onClick={createNftHandler} className='button is-primary'>Create</button>
-                   <div className='container has-text-danger'>
-                    <p>{createNftError}</p>
-                  </div>
-                  <div className='container has-text-success'>
-                    <p>{createNftSuccess}</p>
+                   <div id='CreateNftMessage' className='container has-text-info'>
+                    <p>{createNftMessage}</p>
                   </div>
               </div>
           </section>
@@ -248,11 +248,8 @@ const NFTCertificate = () => {
                       </div>
                    </div>
                    <button onClick={issueNftHandler} className='button is-primary'>Issue</button>
-                   <div className='container has-text-danger'>
-                    <p>{issueNftError}</p>
-                  </div>
-                  <div className='container has-text-success'>
-                    <p>{issueNftSuccess}</p>
+                  <div id='IssueNftMessage' className='container has-text-info'>
+                    <p>{issueNftMessage}</p>
                   </div>
               </div>
           </section>
