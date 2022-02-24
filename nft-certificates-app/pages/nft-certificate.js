@@ -12,13 +12,8 @@ const NFTCertificate = () => {
     const [createNftMessage, setCreateNftMessage] = useState('')
     const [issueNftMessage, setIssueNftMessage] = useState('')
     const [nftContracts, setNftContracts] = useState([])
-    const [tokenName, setTokenName] = useState('')
-    const [tokenSymbol, setTokenSymbol] = useState('')
     const [web3, setWeb3] = useState(null)
     const [address, setAddress] = useState(null)
-    const [inputContractAddress, setInputContractAddress] = useState('')
-    const [inputReceiverAddress, setInputReceiverAddress] = useState('')
-    const [inputTokenURI, setInputTokenUri] = useState('')
     const [myContract, setMyContract] = useState(null)
 
     useEffect(() => {
@@ -32,7 +27,7 @@ const NFTCertificate = () => {
     function updateText (id, status, message) {
         document.getElementById(id).className = 'container has-text-'+status
         const funName = 'set' + id;
-        console.log("Fun name is ", funName)
+        // console.log("Fun name is ", funName)
         eval(funName)(message);
     }
     
@@ -53,9 +48,8 @@ const NFTCertificate = () => {
                         
             console.log(nftAdresses[0].length)
             var result = []
-            console.log(typeof(nftAdresses), Array.isArray(array))
             for (var i=0; i < array[0].length; i++) {
-                console.log(i, extractColumn(array, i))
+                // console.log(i, extractColumn(array, i))
                 result.push(extractColumn(array, i))
             }
             setNftContracts(result)
@@ -97,31 +91,20 @@ const NFTCertificate = () => {
         }
     }
 
-    const updateTokenName = event => {
-        setTokenName(event.target.value)
-    }
-
-    const updateTokenSymbol = event => {
-        setTokenSymbol(event.target.value)
-    }
-
-    const updateInputContractAddress = event => {
-        setInputContractAddress(event.target.value)
-    }
-
-    const updateInputReceiverAddress = event => {
-        setInputReceiverAddress(event.target.value)
-    }
-
-    const updateInputTokenUri = event => {
-        setInputTokenUri(event.target.value)
-    }
-
     const createNftHandler = async() => {
         updateText('IssueNftMessage', 'info', '')
         updateText('CreateNftMessage', 'info', 'Please wait...')
-        if (web3 == 'undefined') await connectWalletHandler()
         
+        if (web3 == 'undefined') await connectWalletHandler()
+        const inputs = document.querySelectorAll("#createNftform input")
+        
+        let tokenName, tokenSymbol
+        inputs.forEach(input => {
+            if (input.name == 'tokenName') tokenName = input.value
+            else if (input.name == 'tokenSymbol') tokenSymbol = input.value
+        })
+
+        console.log(tokenName, tokenSymbol)
         try {
             const result = await myContract.methods.create_nft(tokenName, tokenSymbol).send({from: address, gasLimit: 25000000})
             console.log(result)
@@ -138,18 +121,25 @@ const NFTCertificate = () => {
     const issueNftHandler = async () => {
         updateText('CreateNftMessage', 'info', '')
         updateText('IssueNftMessage', 'info', 'Please wait...')
-        console.log(document.getElementById('issueNftResult').className)
-        // document.getElementById('issueNftResult').className.replace('', 'has-text-danger');
-        // document.getElementById('issueNftResult').addClass('has-text-success');
         if (web3 == 'undefined') await connectWalletHandler()
         
+        const inputs = document.querySelectorAll("#issueNftform input")
+        
+        let receiverAddress, nftContract, tokenUri
+        inputs.forEach(input => {
+            if (input.name == 'receiverAddress') receiverAddress = input.value
+            else if (input.name == 'nftContract') nftContract = input.value
+            else if (input.name == 'tokenUri') tokenUri = input.value
+        })
+
+        console.log(receiverAddress, nftContract, tokenUri)
         try {
-            const result = await myContract.methods.issue_certificate(inputReceiverAddress, inputContractAddress, inputTokenURI).send({from: address, gasLimit: 25000000})
-            console.log(result)
-            console.log(result.events)
+            const result = await myContract.methods.issue_certificate(receiverAddress, nftContract, tokenUri).send({from: address, gasLimit: 25000000})
+            // console.log(result)
+            // console.log(result.events)
             const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
             const tokenId = result.events['NftIssued'].returnValues['tokenId']
-            console.log(tokenAddress)
+            console.log(tokenAddress, tokenId)
             updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
             await getNftContracts()
         } catch (error) {
@@ -211,16 +201,16 @@ const NFTCertificate = () => {
           </section>
           
           <section className='mt-5'>
-              <div className='container'>
+              <div className='container' id='createNftform'>
                   <div className='field'>
                       <label className='label'>Create NFT contract</label>
                       <div className='control'>
-                          <input onChange={updateTokenName} className='input' type='type' placeholder='Enter Token Name'></input>
+                          <input className='input' type='type' name='tokenName' placeholder='Enter Token Name'></input>
                       </div>
                    </div>
                    <div className='field'>
                       <div className='control'>
-                          <input onChange={updateTokenSymbol} className='input' type='type' placeholder='Enter Token Symbol'></input>
+                          <input className='input' type='type' name='tokenSymbol' placeholder='Enter Token Symbol'></input>
                       </div>
                    </div>
                    <button onClick={createNftHandler} className='button is-primary'>Create</button>
@@ -230,21 +220,21 @@ const NFTCertificate = () => {
               </div>
           </section>
           <section className='mt-5'>
-              <div className='container'>
+              <div className='container' id='issueNftform'>
                   <div className='field'>
                       <label className='label'>Issue NFT token</label>
                       <div className='control'>
-                          <input onChange={updateInputReceiverAddress} className='input' type='type' placeholder='Enter receiver address'></input>
+                          <input className='input' type='type' name='receiverAddress' placeholder='Enter receiver address'></input>
                       </div>
                    </div>
                    <div className='field'>
                       <div className='control'>
-                          <input onChange={updateInputContractAddress} className='input' type='type' placeholder='Enter NFT contract address'></input>
+                          <input className='input' type='type' name='nftContract' placeholder='Enter NFT contract address'></input>
                       </div>
                    </div>
                    <div className='field'>
                       <div className='control'>
-                          <input onChange={updateInputTokenUri} className='input' type='type' placeholder='Enter token URI'></input>
+                          <input className='input' type='type' name='tokenUri' placeholder='Enter token URI'></input>
                       </div>
                    </div>
                    <button onClick={issueNftHandler} className='button is-primary'>Issue</button>
