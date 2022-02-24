@@ -1,5 +1,5 @@
-const IdentityManagement = artifacts.require("IdentityManagement");
+const Management = artifacts.require("Management");
 
 module.exports = function (deployer) {
-  deployer.deploy(IdentityManagement);
+  deployer.deploy(Management);
 };

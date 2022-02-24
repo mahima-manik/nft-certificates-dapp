@@ -8,7 +8,13 @@ module.exports = async function(callback) {
     console.log("Contract instance fetched: ", instance.address);
     let nftAddress = null;
     try {
-        let txReceipt = await instance.create_nft("Mahima Manik", "MM");
+        let txReceipt = await instance.create_nft("Indian Institute of Technology, Delhi", "IITD");
+        nftAddress = txReceipt.logs[0].args[0];
+        console.log("New NFT contract created at address: ", nftAddress);
+        txReceipt = await instance.create_nft("Delhi University", "DU");
+        nftAddress = txReceipt.logs[0].args[0];
+        console.log("New NFT contract created at address: ", nftAddress);
+        txReceipt = await instance.create_nft("Miranda House", "MH");
         nftAddress = txReceipt.logs[0].args[0];
         console.log("New NFT contract created at address: ", nftAddress);
     } catch (error) {
@@ -25,8 +31,11 @@ module.exports = async function(callback) {
     }
 
     try {
-        let nftsList = await instance.get_nfts_created();
+        let nftsList = await instance.get_nft_addresses();
         console.log(nftsList);
+        console.log(nftsList[0]);
+        console.log(nftsList[1]);
+        console.log(nftsList[2]);
     } catch (error) {
         console.log(error);
     }
