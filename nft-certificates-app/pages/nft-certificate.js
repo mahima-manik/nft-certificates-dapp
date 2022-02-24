@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { useState, useEffect } from 'react';
 import Web3 from 'web3'
-import myContract from '../blockchain/certificate'
+import identityContract from '../blockchain/certificate'
 import detectEthereumProvider from '@metamask/detect-provider';
 import 'bulma/css/bulma.css'
 import styles from '../styles/NftCertificate.module.css'
@@ -10,6 +10,9 @@ const NFTCertificate = () => {
     const [connectWalletError, setConnectWalletError] = useState('')
     const [nftContractsError, setNftContractsError] = useState('')
     const [createNftError, setCreateNftError] = useState('')
+    const [createNftSuccess, setCreateNftSuccess] = useState('')
+    const [issueNftError, setIssueNftError] = useState('')
+    const [issueNftSuccess, setIssueNftSuccess] = useState('')
     const [nftContracts, setNftContracts] = useState([])
     const [tokenName, setTokenName] = useState('')
     const [tokenSymbol, setTokenSymbol] = useState('')
@@ -18,10 +21,11 @@ const NFTCertificate = () => {
     const [inputContractAddress, setInputContractAddress] = useState('')
     const [inputReceiverAddress, setInputReceiverAddress] = useState('')
     const [inputTokenURI, setInputTokenUri] = useState('')
+    const [myContract, setMyContract] = useState(null)
 
-    // useEffect(() => {
-    //     getNftContracts()
-    // });
+    useEffect(() => {
+        if (myContract && address) getNftContracts()
+    }, [myContract]);
 
     function extractColumn(arr, column) {
         return arr.map(x => x[column])
@@ -49,9 +53,10 @@ const NFTCertificate = () => {
                 result.push(extractColumn(array, i))
             }
             setNftContracts(result)
+            setNftContractsError('')
         } catch (error) {
             console.log('Error fetching NFT addresses', error)
-            setNftContractsError('Contract addresses cannot be fetched: ' + error.message)
+            setNftContractsError(error.message)
         }
     }
 
@@ -68,11 +73,14 @@ const NFTCertificate = () => {
                 setWeb3(web3)
                 console.log("Conection successful")
                 setConnectWalletError('')
-                /* Get accounts List
-                 */
+                /* Get accounts List */
                 const accounts = await web3.eth.getAccounts()
                 setAddress(accounts[0])
-                getNftContracts()
+
+                /* Create local vm copy */
+                const vm = identityContract(web3)
+                setMyContract(vm)
+                setConnectWalletError('')
             } catch (error) {
                 setConnectWalletError(error.message)
             }
@@ -103,6 +111,10 @@ const NFTCertificate = () => {
     }
 
     const createNftHandler = async() => {
+        setIssueNftError('')
+        setIssueNftSuccess('')
+        setCreateNftError('')
+        setCreateNftSuccess('Please wait...')
         if (web3 == 'undefined') await connectWalletHandler()
         
         try {
@@ -110,23 +122,35 @@ const NFTCertificate = () => {
             console.log(result)
             console.log(result.events)
             console.log(result.events['tokenAddress'])
+            setCreateNftError('')
+            setCreateNftSuccess('Created NFT Contract at: ' + result.events['tokenAddress'])
             await getNftContracts()
         } catch (error) {
-            setCreateNftError("Error creating NFT contract" + error.message)
+            setCreateNftError('Error creating NFT contract: ' + error.message)
+            setCreateNftSuccess('')
         }
     }
 
     const issueNftHandler = async () => {
+        setIssueNftError('')
+        setIssueNftSuccess('Please wait...')
+        setCreateNftError('')
+        setCreateNftSuccess('')
         if (web3 == 'undefined') await connectWalletHandler()
         
         try {
             const result = await myContract.methods.issue_certificate(inputReceiverAddress, inputContractAddress, inputTokenURI).send({from: address, gasLimit: 25000000})
             console.log(result)
             console.log(result.events)
-            console.log(result.events['tokenAddress'])
+            const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
+            const tokenId = result.events['NftIssued'].returnValues['tokenId']
+            console.log(tokenAddress)
+            setIssueNftError('')
+            setIssueNftSuccess('Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
             await getNftContracts()
         } catch (error) {
-            setCreateNftError("Error creating NFT contract" + error.message)
+            setIssueNftError('Error issuing NFT: ' + error.message)
+            setIssueNftSuccess('')
         }
     }
 
@@ -200,6 +224,9 @@ const NFTCertificate = () => {
                    <div className='container has-text-danger'>
                     <p>{createNftError}</p>
                   </div>
+                  <div className='container has-text-success'>
+                    <p>{createNftSuccess}</p>
+                  </div>
               </div>
           </section>
           <section className='mt-5'>
@@ -222,7 +249,10 @@ const NFTCertificate = () => {
                    </div>
                    <button onClick={issueNftHandler} className='button is-primary'>Issue</button>
                    <div className='container has-text-danger'>
-                    <p>{createNftError}</p>
+                    <p>{issueNftError}</p>
+                  </div>
+                  <div className='container has-text-success'>
+                    <p>{issueNftSuccess}</p>
                   </div>
               </div>
           </section>
