@@ -12,7 +12,8 @@ contract Management {
 
     event NftCreated(address tokenAddress);
     event NftIssued(address receiver, address tokenAddress, uint tokenId);
-
+    event ViewCount(uint256 total);
+    
     mapping (address => NftInfo) nftadmins;
 
     /*
@@ -51,19 +52,23 @@ contract Management {
     /*
         Returns a list of all the NFT contracts created by msg.sender
     */
-    function get_nft_addresses () external view returns (address[] memory, string[] memory, string[] memory)   {
+    function get_nft_addresses () external view returns (address[] memory, 
+        string[] memory, string[] memory, uint256[] memory)   {
+        
         NftInfo storage nftInfo = nftadmins[msg.sender];
         address[] memory addresses = nftInfo.addresses;
         uint len = addresses.length;
         string[] memory tokenNames = new string[](len);
         string[] memory tokenSymbols = new string[](len);
+        uint256[] memory totalToken = new uint256[](len);
         
         for (uint i=0; i<len; i++)  {
             Certificate certificate = Certificate(addresses[i]);
             tokenNames[i] = certificate.name();
             tokenSymbols[i] = certificate.symbol();
+            totalToken[i] = certificate.getTotalTokens();
         }
-        return (addresses, tokenNames, tokenSymbols);
+        return (addresses, tokenNames, tokenSymbols, totalToken);
     }
 
     /*

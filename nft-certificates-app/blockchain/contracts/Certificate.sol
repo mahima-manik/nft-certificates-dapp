@@ -22,4 +22,10 @@ contract Certificate is ERC721URIStorage {
 
         return newItemId;
     }
+
+    /* To return the total number of tokens issued for this contract address */
+    function getTotalTokens() external view returns (uint256) {
+        uint256 newItemId = _tokenIds.current();
+        return newItemId;
+    }
 }

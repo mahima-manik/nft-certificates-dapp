@@ -33,9 +33,6 @@ module.exports = async function(callback) {
     try {
         let nftsList = await instance.get_nft_addresses();
         console.log(nftsList);
-        console.log(nftsList[0]);
-        console.log(nftsList[1]);
-        console.log(nftsList[2]);
     } catch (error) {
         console.log(error);
     }

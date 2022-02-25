@@ -179,6 +179,7 @@ const NFTCertificate = () => {
                             <th>Token name</th>
                             <th>Token symbol</th>
                             <th>Token address</th>
+                            <th>Issue count</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -186,7 +187,8 @@ const NFTCertificate = () => {
                             <tr key={nft[0]}>
                             <td>{nft[1]}</td>
                             <td>{nft[2]}</td>
-                            <td><a href={'https://rinkeby.etherscan.io/token/'+nft[0]}>here</a></td>
+                            <td><a href={'https://rinkeby.etherscan.io/token/'+nft[0]} target="_blank">etherscan</a></td>
+                            <td>{nft[3]}</td>
                         </tr>
                         ))}
                     </tbody>
