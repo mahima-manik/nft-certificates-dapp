@@ -21,8 +21,8 @@ contract Management {
         @param _name
         @param _symbol
     */
-    function create_nft (string memory _name, string memory _symbol) external {
-        Certificate cert = new Certificate(_name, _symbol); // returns bytecode
+    function create_nft (string memory _name, string memory _symbol, string[] memory _field_name, string[] memory _field_type) external {        
+        Certificate cert = new Certificate(_name, _symbol, _field_name, _field_type); // returns bytecode
         // Not storing bytecode, as it will become expensive
         address certAddress = cert.contractAddress();
 
@@ -69,6 +69,13 @@ contract Management {
             totalToken[i] = certificate.getTotalTokens();
         }
         return (addresses, tokenNames, tokenSymbols, totalToken);
+    }
+
+    function get_nft_attributes(address nftAddress) external view returns (string[] memory, string[] memory)  {
+        NftInfo storage nftInfo = nftadmins[msg.sender];
+        require (nftInfo.owner == msg.sender, "Do not have authority to view attributes of this token");
+        Certificate certificate = Certificate(nftAddress);
+        return certificate.getAttributes();
     }
 
     /*

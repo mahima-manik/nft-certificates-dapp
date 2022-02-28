@@ -98,24 +98,49 @@ const NFTCertificate = () => {
         if (web3 == 'undefined') await connectWalletHandler()
         const inputs = document.querySelectorAll("#createNftform input")
         
-        let tokenName, tokenSymbol
+        let tokenName, tokenSymbol, attributeName
         inputs.forEach(input => {
             if (input.name == 'tokenName') tokenName = input.value
             else if (input.name == 'tokenSymbol') tokenSymbol = input.value
+            else if (input.name == 'attributeName') attributeName = input.value
         })
 
-        console.log(tokenName, tokenSymbol)
+        let attributeNames = [attributeName]
+        let attributeTypes = ["string"]
+
+        console.log(tokenName, tokenSymbol, attributeName)
         try {
-            const result = await myContract.methods.create_nft(tokenName, tokenSymbol).send({from: address, gasLimit: 25000000})
+            const result = await myContract.methods.create_nft(tokenName, tokenSymbol, attributeNames, attributeTypes).send({from: address, gasLimit: 25000000})
             console.log(result)
             console.log(result.events)
             const tokenAddress = result.events['NftCreated'].returnValues['tokenAddress']
             console.log(tokenAddress)
+            getNftAttributes(tokenAddress)
             updateText('CreateNftMessage', 'success', 'Created NFT Contract at: ' + tokenAddress)
             await getNftContracts()
         } catch (error) {
             updateText('CreateNftMessage', 'danger', 'Error creating NFT contract: ' + error.message)
         }
+    }
+
+    function remove(el) {
+        var element = el;
+        element.remove();
+    }
+    const addNftAttributes = () => {
+        var button = document.getElementById("add-attributes");
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            let value = document.getElementById('attribute').value
+            if (value == "") return false
+            document.getElementById('attribute').value = ""
+            const newNode = document.createElement("div");
+            newNode.className = 'box'
+            newNode.innerHTML = value + "<button class='delete is-medium ml-2'></button>"
+            document.getElementById("createNftform").insertBefore(newNode, this);
+            return false;
+        });
     }
 
     const issueNftHandler = async () => {
@@ -144,6 +169,16 @@ const NFTCertificate = () => {
             await getNftContracts()
         } catch (error) {
             updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
+        }
+    }
+
+    const getNftAttributes = async (contractAddress) => {
+        if (web3 == 'undefined') await connectWalletHandler()
+        try {
+            const result = await myContract.methods.get_nft_attributes(contractAddress).call({from: address})
+            console.log(result)
+        } catch (error) {
+            console.log(error.message)
         }
     }
 
@@ -204,10 +239,13 @@ const NFTCertificate = () => {
           
           <section className='mt-5'>
               <div className='container' id='createNftform'>
-                  <div className='field'>
+                   <div className='field'>
                       <label className='label'>Create NFT contract</label>
-                      <div className='control'>
+                      <div className='control has-icons-left'>
                           <input className='input' type='type' name='tokenName' placeholder='Enter Token Name'></input>
+                          <span className="icon is-small is-left">
+                            <i class="fas fa-user"></i>
+                          </span>
                       </div>
                    </div>
                    <div className='field'>
@@ -215,6 +253,12 @@ const NFTCertificate = () => {
                           <input className='input' type='type' name='tokenSymbol' placeholder='Enter Token Symbol'></input>
                       </div>
                    </div>
+                   <div className='field'>
+                        <div className='control'>
+                                <input className='input' type='type' name='attributeName' id='attribute' placeholder='Enter Attribute Name'></input>
+                        </div>
+                   </div>
+                   <button onClick={addNftAttributes} className='button is-info is-light is-small mr-2' id='add-attributes'>Add NFT attributes</button>
                    <button onClick={createNftHandler} className='button is-primary'>Create</button>
                    <div id='CreateNftMessage' className='container has-text-info'>
                     <p>{createNftMessage}</p>
