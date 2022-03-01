@@ -8,7 +8,7 @@ module.exports = async function(callback) {
     console.log("Contract instance fetched: ", instance.address);
     let nftAddress = null;
     try {
-        let txReceipt = await instance.create_nft("Indian Institute of Technology, Delhi", "IITD", ["Department", "Course", "Course code"], ["string", "string", "string"]);
+        let txReceipt = await instance.create_nft("Indian Institute of Technology, Delhi", "IITD", ["Department", "Course", "Course code"]);
         nftAddress = txReceipt.logs[0].args[0];
         // console.log("New NFT contract created at address: ", nftAddress);
         // txReceipt = await instance.create_nft("Delhi University", "DU");

@@ -8,8 +8,7 @@ contract Certificate is ERC721URIStorage {
     using Counters for Counters.Counter;
     
     struct Attribute {
-        string[] fields;
-        string[] types;
+        string[] names;
     }
 
     Counters.Counter private _tokenIds;
@@ -17,16 +16,13 @@ contract Certificate is ERC721URIStorage {
     Attribute attribute;
 
     constructor(string memory _name, string memory _symbol, 
-        string[] memory _field_name, string[] memory _field_type) ERC721(_name, _symbol) {
-        create_attributes(_field_name, _field_type);
+        string[] memory _field_names) ERC721(_name, _symbol) {
+        create_attributes(_field_names);
         contractAddress = address(this);
     }
 
-    function create_attributes(string[] memory _field_name, string[] memory _field_type) private {
-        uint len = _field_name.length;
-        require (_field_type.length == len, "Attributes not formed correctly");
-        attribute.fields = _field_name;
-        attribute.types = _field_type;
+    function create_attributes(string[] memory _field_names) private {
+        attribute.names = _field_names;
     }
 
     function mint(string memory tokenURI, address recipient) public returns (uint256) {
@@ -45,7 +41,7 @@ contract Certificate is ERC721URIStorage {
         return newItemId;
     }
 
-    function getAttributes() external view returns (string[] memory, string[] memory)   {
-        return (attribute.fields, attribute.types);
+    function getAttributes() external view returns (string[] memory)   {
+        return (attribute.names);
     }
 }
