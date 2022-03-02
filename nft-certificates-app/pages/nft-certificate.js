@@ -5,6 +5,7 @@ import identityContract from '../blockchain/certificate'
 import detectEthereumProvider from '@metamask/detect-provider';
 import 'bulma/css/bulma.css'
 import styles from '../styles/NftCertificate.module.css'
+import { create } from 'ipfs-http-client'
 
 const NFTCertificate = () => {
     const [connectWalletError, setConnectWalletError] = useState('')
@@ -15,7 +16,10 @@ const NFTCertificate = () => {
     const [web3, setWeb3] = useState(null)
     const [address, setAddress] = useState('')
     const [myContract, setMyContract] = useState(null)
-    const [fileUrl, updateFileUrl] = useState('File name?')
+    const [fileUrl, updateFileUrl] = useState('No file uploaded')
+    const [nftJson, setNftJson] = useState({})
+
+    const client = create('https://ipfs.infura.io:5001/api/v0')
 
     useEffect(() => {
         if (myContract && address) getNftContracts()
@@ -136,30 +140,58 @@ const NFTCertificate = () => {
         
         const inputs = document.querySelectorAll("#issueNftForm input")
         
-        let receiverAddress, nftContract, tokenUri
+        let receiverAddress, nftContract
+        let json = {}
         inputs.forEach(input => {
             // console.log(input)
             if (input.name == 'receiverAddress') receiverAddress = input.value
             else if (input.name == 'nftContract') nftContract = input.value
-            else if (input.name == 'tokenUri') tokenUri = input.value
+            else if (input.name == 'nftName') json['name'] = input.value
+            else if (input.name == 'nftDescription') json['description'] = input.value
         })
 
-        let attrs = document.querySelectorAll("#attributes input")
-        attrs.forEach(a => console.log(a))
+        // TODO: write precondition test for all
+        if (fileUrl == 'No file uploaded')  {
+            updateText('IssueNftMessage', 'danger', 'Please upload NFT file')
+            return
+        }
 
-        // console.log(receiverAddress, nftContract, tokenUri)
-        // try {
-        //     const result = await myContract.methods.issue_certificate(receiverAddress, nftContract, tokenUri).send({from: address, gasLimit: 25000000})
-        //     // console.log(result)
-        //     // console.log(result.events)
-        //     const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
-        //     const tokenId = result.events['NftIssued'].returnValues['tokenId']
-        //     console.log(tokenAddress, tokenId)
-        //     updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
-        //     await getNftContracts()
-        // } catch (error) {
-        //     updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
-        // }
+        json['image'] = fileUrl
+
+        let attributes = []
+        let attrs = document.querySelectorAll("#attributes input")
+        attrs.forEach(a => {
+            let traits = {}
+            traits['trait_type'] = a.id
+            traits['value'] = a.value
+            attributes.push(traits)
+        })
+
+        json['attributes'] = attributes
+        console.log("I am your json", JSON.stringify(json))
+
+        let tokenURI
+        try {
+            const added = await client.add(JSON.stringify(json))
+            tokenURI = 'https://ipfs.infura.io/ipfs/' + added.path
+            updateText('IssueNftMessage', 'success', 'Keep waiting! NFT URI: ' + tokenURI)
+        } catch (error) {
+            updateText('IssueNftMessage', 'danger', error.message)
+            return
+        }
+
+        try {
+            const result = await myContract.methods.issue_certificate(receiverAddress, nftContract, tokenURI).send({from: address, gasLimit: 25000000})
+            // console.log(result)
+            // console.log(result.events)
+            const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
+            const tokenId = result.events['NftIssued'].returnValues['tokenId']
+            console.log(tokenAddress, tokenId)
+            updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
+            await getNftContracts()
+        } catch (error) {
+            updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
+        }
     }
 
     const getNftAttributes = async (contractAddress) => {
@@ -195,7 +227,8 @@ const NFTCertificate = () => {
 
         var input = document.createElement("input");
         input.setAttribute("type", "text");
-        input.setAttribute("name", "attributes");
+        input.setAttribute("name", "attributes " + name);
+        input.setAttribute("id", name)
         input.className = 'input'
 
         control.appendChild(input)
@@ -210,8 +243,28 @@ const NFTCertificate = () => {
         return colfield
     }
 
-    const formJSON = (attributes) => {
-        let json = ''
+    async function updateImage(e) {
+        const file = e.target.files[0]
+        try {
+          const added = await client.add(file)
+          const url = `https://ipfs.infura.io/ipfs/${added.path}`
+          updateFileUrl(url)
+          return url
+        } catch (error) {
+          console.log('Error uploading file: ', error.message)
+        }  
+    }
+
+    async function updateJSON(e) {
+        const file = e.target.files[0]
+        try {
+          const added = await client.add(file)
+          const url = `https://ipfs.infura.io/ipfs/${added.path}`
+          updateFileUrl(url)
+          return url
+        } catch (error) {
+          console.log('Error uploading file: ', error.message)
+        }  
     }
 
     const issueThisNft = async (event) => {
@@ -220,6 +273,9 @@ const NFTCertificate = () => {
         var form = document.getElementById('issueNftForm')
         if (formSection.style.display == 'block') {
             formSection.style.display = 'none'
+            document.getElementsByName('receiverAddress')[0].value = ''
+            document.getElementsByName('nftName')[0].value = ''
+            document.getElementsByName('nftDescription')[0].value = ''
             let attributes = document.getElementById('attributes')
             form.removeChild(attributes)
             return
@@ -365,25 +421,25 @@ const NFTCertificate = () => {
                         <label className='label'>Description</label>
                         <div className='field'>
                             <div className='control'>
-                                <textarea className='input' type='type' name='nftDescription' placeholder='Enter NFT description'></textarea>
+                                <input className='input' type='type' name='nftDescription' placeholder='Enter NFT description'></input>
                             </div>
                         </div>
                     </div>
                    </div>
                    
-                <div id="file-js-example" class="file has-name">
+                <div id="file-js-example" class="file has-name mt-4">
                     <label class="file-label">
-                    <input class="file-input" type="file" name="nftFile"/>
+                    <input class="file-input" type="file" name="nftFile" onChange={updateImage}/>
                     <span class="file-cta">
                     <span class="file-icon">
                         <i class="fas fa-upload"></i>
                     </span>
                     <span class="file-label">
-                        Choose a file…
+                        Choose your NFT
                     </span>
                     </span>
                     <span class="file-name">
-                        No file uploaded
+                        {fileUrl}
                     </span>
                     </label>
                 </div>
