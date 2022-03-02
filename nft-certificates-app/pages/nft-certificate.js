@@ -220,7 +220,6 @@ const NFTCertificate = () => {
         var form = document.getElementById('issueNftForm')
         if (formSection.style.display == 'block') {
             formSection.style.display = 'none'
-            // console.log('Last child:: ', form.lastChild)
             let attributes = document.getElementById('attributes')
             form.removeChild(attributes)
             return
@@ -261,6 +260,7 @@ const NFTCertificate = () => {
             <title>NFT Certificate</title>
             <meta name="description" content="Create your own organization's NFT and distribute" />
             <link rel="icon" href="/favicon.ico" />
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous"/>
           </Head>
           <nav className="navbar mt-4 mb-4">
             <div className='container'>
@@ -370,19 +370,24 @@ const NFTCertificate = () => {
                         </div>
                     </div>
                    </div>
-                   <div class="file has-name">
-                        <label class="file-label">
-                        <input class="file-input" type="file" name='nftImage'></input>
-                        <span class="file-cta">
-                            <span class="file-icon">
-                                <i class="fas fa-upload"></i>
-                            </span>
-                            <span class="file-label">Upload</span>
-                        </span>
-                        <span class="file-name">{fileUrl}</span>
-                        </label>
-                   </div>
-              </div>
+                   
+                <div id="file-js-example" class="file has-name">
+                    <label class="file-label">
+                    <input class="file-input" type="file" name="nftFile"/>
+                    <span class="file-cta">
+                    <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                    </span>
+                    <span class="file-label">
+                        Choose a file…
+                    </span>
+                    </span>
+                    <span class="file-name">
+                        No file uploaded
+                    </span>
+                    </label>
+                </div>
+                    </div>
               <div className='container'>
                 <button onClick={issueNftHandler} className='button is-primary mt-2'>Process</button>
                 <div id='IssueNftMessage' className='container has-text-info'>
