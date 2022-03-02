@@ -15,6 +15,7 @@ const NFTCertificate = () => {
     const [web3, setWeb3] = useState(null)
     const [address, setAddress] = useState(null)
     const [myContract, setMyContract] = useState(null)
+    const [fileUrl, updateFileUrl] = useState('File name?')
 
     useEffect(() => {
         if (myContract && address) getNftContracts()
@@ -126,28 +127,32 @@ const NFTCertificate = () => {
         updateText('IssueNftMessage', 'info', 'Please wait...')
         if (web3 == 'undefined') await connectWalletHandler()
         
-        const inputs = document.querySelectorAll("#issueNftform input")
+        const inputs = document.querySelectorAll("#issueNftForm input")
         
         let receiverAddress, nftContract, tokenUri
         inputs.forEach(input => {
+            // console.log(input)
             if (input.name == 'receiverAddress') receiverAddress = input.value
             else if (input.name == 'nftContract') nftContract = input.value
             else if (input.name == 'tokenUri') tokenUri = input.value
         })
 
-        console.log(receiverAddress, nftContract, tokenUri)
-        try {
-            const result = await myContract.methods.issue_certificate(receiverAddress, nftContract, tokenUri).send({from: address, gasLimit: 25000000})
-            // console.log(result)
-            // console.log(result.events)
-            const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
-            const tokenId = result.events['NftIssued'].returnValues['tokenId']
-            console.log(tokenAddress, tokenId)
-            updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
-            await getNftContracts()
-        } catch (error) {
-            updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
-        }
+        let attrs = document.querySelectorAll("#attributes input")
+        attrs.forEach(a => console.log(a))
+
+        // console.log(receiverAddress, nftContract, tokenUri)
+        // try {
+        //     const result = await myContract.methods.issue_certificate(receiverAddress, nftContract, tokenUri).send({from: address, gasLimit: 25000000})
+        //     // console.log(result)
+        //     // console.log(result.events)
+        //     const tokenAddress = result.events['NftIssued'].returnValues['tokenAddress']
+        //     const tokenId = result.events['NftIssued'].returnValues['tokenId']
+        //     console.log(tokenAddress, tokenId)
+        //     updateText('IssueNftMessage', 'success', 'Issued NFT: ' + 'https://testnets.opensea.io/assets/' + tokenAddress + '/' + tokenId)
+        //     await getNftContracts()
+        // } catch (error) {
+        //     updateText('IssueNftMessage', 'danger', 'Error issuing NFT: ' + error.message)
+        // }
     }
 
     const getNftAttributes = async (contractAddress) => {
@@ -155,8 +160,61 @@ const NFTCertificate = () => {
         try {
             const result = await myContract.methods.get_nft_attributes(contractAddress).call({from: address})
             console.log(result)
+            return result
         } catch (error) {
             console.log(error.message)
+        }
+    }
+
+    const createInputField = (name) => {
+        var field = document.createElement("div");
+        field.className = 'field'
+        
+        var control = document.createElement("div");
+        control.className = 'control'
+
+        var input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("name", "attributes");
+        input.setAttribute("placeholder", name);
+        input.setAttribute.className = 'input'
+        
+        control.appendChild(input)
+        field.append(control)
+        return field
+    }
+    const formJSON = (attributes) => {
+        let json = ''
+    }
+    const issueThisNft = async (event) => {
+        let contractAddress = event.target.getAttribute('contractAddress');
+        let name = event.target.getAttribute('name');
+        let symbol = event.target.getAttribute('symbol');
+        console.log("Here ", contractAddress, name, symbol)
+        var formSection = document.getElementById('issueNftFormSection')
+        var form = document.getElementById('issueNftForm')
+        var newdiv = document.createElement('div');
+        newdiv.setAttribute('className', 'container')
+        newdiv.setAttribute('id', 'attributes')
+        var newlabel = document.createElement('label');
+        newlabel.className ='label'
+        newlabel.innerHTML = "NFT Attributes"
+        newdiv.appendChild(newlabel)
+        if (formSection.style.display == 'none') {
+            formSection.style.display = 'block'
+            let nftContract = document.getElementsByName('nftContract')[0];
+            nftContract.value = contractAddress
+            let attributes = await getNftAttributes (contractAddress);
+            
+            form.appendChild(newdiv)
+            attributes.forEach(a => {
+                let field = createInputField(a);
+                newdiv.appendChild(field)
+            })
+        } else {
+            formSection.style.display = 'none'
+            console.log('Last child:: ', form.lastChild)
+            form.removeChild(form.lastChild)
         }
     }
 
@@ -193,6 +251,7 @@ const NFTCertificate = () => {
                             <th>Token symbol</th>
                             <th>Token address</th>
                             <th>Issue count</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -202,6 +261,7 @@ const NFTCertificate = () => {
                             <td>{nft[2]}</td>
                             <td><a href={'https://rinkeby.etherscan.io/token/'+nft[0]} target="_blank">etherscan</a></td>
                             <td>{nft[3]}</td>
+                            <td><button onClick={issueThisNft} contractAddress={nft[0]} name={nft[1]} symbol={nft[2]} >Issue</button></td>
                         </tr>
                         ))}
                     </tbody>
@@ -214,7 +274,51 @@ const NFTCertificate = () => {
                   </div>
               </div>
           </section>
-          
+
+          <section className='mt-5' id='issueNftFormSection' style={{display: 'none'}}>
+              <div className='container' id='issueNftForm'>
+                  <label className='label'>Issue NFT token</label>
+                  <div className='field'>
+                      <div className='control'>
+                          <input className='input' type='type' name='nftContract' disabled></input>
+                      </div>
+                  </div>
+                  <div className='field'>
+                      <div className='control'>
+                          <input className='input' type='type' name='receiverAddress' placeholder='Enter receiver address'></input>
+                      </div>
+                   </div>
+                   <div className='field'>
+                      <div className='control'>
+                          <input className='input' type='type' name='nftName' placeholder='Enter NFT name'></input>
+                      </div>
+                   </div>
+                   <div className='field'>
+                      <div className='control'>
+                          <textarea className='input' type='type' name='nftDescription' placeholder='Enter NFT description'></textarea>
+                      </div>
+                   </div>
+                   <div class="file has-name">
+                        <label class="file-label">
+                        <input class="file-input" type="file" name='nftImage'></input>
+                        <span class="file-cta">
+                            <span class="file-icon">
+                                <i class="fas fa-upload"></i>
+                            </span>
+                            <span class="file-label">Upload</span>
+                        </span>
+                        <span class="file-name">{fileUrl}</span>
+                        </label>
+                   </div>
+              </div>
+              <div className='container'>
+                <button onClick={issueNftHandler} className='button is-primary'>Process</button>
+                <div id='IssueNftMessage' className='container has-text-info'>
+                    <p>{issueNftMessage}</p>
+                </div>
+              </div>
+          </section>
+
           <section className='mt-5'>
               <div className='container' id='createNftform'>
                    <div className='field'>
@@ -239,30 +343,6 @@ const NFTCertificate = () => {
                    <button onClick={createNftHandler} className='button is-primary'>Create</button>
                    <div id='CreateNftMessage' className='container has-text-info'>
                     <p>{createNftMessage}</p>
-                  </div>
-              </div>
-          </section>
-          <section className='mt-5'>
-              <div className='container' id='issueNftform'>
-                  <div className='field'>
-                      <label className='label'>Issue NFT token</label>
-                      <div className='control'>
-                          <input className='input' type='type' name='receiverAddress' placeholder='Enter receiver address'></input>
-                      </div>
-                   </div>
-                   <div className='field'>
-                      <div className='control'>
-                          <input className='input' type='type' name='nftContract' placeholder='Enter NFT contract address'></input>
-                      </div>
-                   </div>
-                   <div className='field'>
-                      <div className='control'>
-                          <input className='input' type='type' name='tokenUri' placeholder='Enter token URI'></input>
-                      </div>
-                   </div>
-                   <button onClick={issueNftHandler} className='button is-primary'>Issue</button>
-                  <div id='IssueNftMessage' className='container has-text-info'>
-                    <p>{issueNftMessage}</p>
                   </div>
               </div>
           </section>
