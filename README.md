@@ -35,8 +35,14 @@ It enables anyone to:
 7. Dotenv: For storing environmental variable constants and accessing them in config. Used to store private keys of wallets
 8. Openzeppeline: Boiler plate smart contract code. ERC20 and ERC721 are golden standards for fungible and NFT tokens respectively. This library is most widely used and therefore tested by the industry.
 
-
 On the front end we have used Javascript and <a href="https://nextjs.org" target="_blank">Next.js</a>: It is a React framework for developing single page Javascript applications. It provides server side rendering and page based routing. 
+
+### Cool stuffs
+Use the following plugins, to make your life pretty:
+1. IntelliSense for CSS class names in HTML: Cache CSS class definitions and start getting class name suggestion for different HTML tags. Saves a lot of type error.
+2. Solidity plugin: Solidity file syntax highlights and compilation. Latest release had some bug, using: v0.0.135
+3. Prettier - Code formatter: Saves your precious time correcting indentation.
+4. Auto Rename Tag: Auto change the tag pair, time and eye saver.
 
 ## Testnet Deployments
 1. Main contract address: https://rinkeby.etherscan.io/address/0x49922c934203E1c5d996B150685DDbb87C4FCd9b
