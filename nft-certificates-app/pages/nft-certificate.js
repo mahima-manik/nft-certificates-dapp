@@ -17,13 +17,12 @@ const NFTCertificate = () => {
     const [address, setAddress] = useState('')
     const [myContract, setMyContract] = useState(null)
     const [fileUrl, updateFileUrl] = useState('No file uploaded')
-    const [nftJson, setNftJson] = useState({})
 
     const client = create('https://ipfs.infura.io:5001/api/v0')
 
     useEffect(() => {
         if (myContract && address) getNftContracts()
-    }, [myContract]);
+    }, [myContract, address]);
 
     function extractColumn(arr, column) {
         return arr.map(x => x[column])
@@ -255,18 +254,6 @@ const NFTCertificate = () => {
         }  
     }
 
-    async function updateJSON(e) {
-        const file = e.target.files[0]
-        try {
-          const added = await client.add(file)
-          const url = `https://ipfs.infura.io/ipfs/${added.path}`
-          updateFileUrl(url)
-          return url
-        } catch (error) {
-          console.log('Error uploading file: ', error.message)
-        }  
-    }
-
     const issueThisNft = async (event) => {
 
         var formSection = document.getElementById('issueNftFormSection')
@@ -375,7 +362,7 @@ const NFTCertificate = () => {
 
           <section className='mt-5' id='issueNftFormSection' style={{display: 'none'}}>
               <div className='container' id='issueNftForm'>
-                  <label className='label'>Issue NFT token</label>
+                  <p class='title'>Issue NFT</p>
                   <div class="columns">
                     <div class="column is-one-third">
                         <div className='field'>
@@ -404,24 +391,33 @@ const NFTCertificate = () => {
                     <div class="column is-one-third">
                         <label className='label'>Receiver Address</label>
                         <div className='field'>
-                        <div className='control'>
+                        <div className='control has-icons-left'>
                             <input className='input' type='type' name='receiverAddress' placeholder='Enter receiver address'></input>
+                            <span className="icon is-small is-left">
+                              <i class="fas fa-address-card"></i>
+                            </span>
                         </div>
                         </div>
                     </div>
                     <div class="column is-one-third">
                         <label className='label'>Name</label>
                         <div className='field'>
-                            <div className='control'>
+                            <div className='control has-icons-left'>
                                 <input className='input' type='type' name='nftName' placeholder='Enter NFT name'></input>
+                                <span className="icon is-small is-left">
+                                  <i class="fas fa-keyboard"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
                     <div class="column is-one-third">
                         <label className='label'>Description</label>
                         <div className='field'>
-                            <div className='control'>
+                            <div className='control has-icons-left'>
                                 <input className='input' type='type' name='nftDescription' placeholder='Enter NFT description'></input>
+                                <span className="icon is-small is-left">
+                                  <i class="fas fa-keyboard"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -454,8 +450,8 @@ const NFTCertificate = () => {
 
           <section className='mt-5'>
               <div className='container' id='createNftform'>
+                   <p class='title'>Create NFT contract</p>
                    <div className='field'>
-                      <label className='label'>Create NFT contract</label>
                       <div className='control has-icons-left'>
                           <input className='input' type='type' name='tokenName' placeholder='Enter Token Name'></input>
                           <span className="icon is-small is-left">
@@ -464,13 +460,19 @@ const NFTCertificate = () => {
                       </div>
                    </div>
                    <div className='field'>
-                      <div className='control'>
+                      <div className='control has-icons-left'>
                           <input className='input' type='type' name='tokenSymbol' placeholder='Enter Token Symbol'></input>
+                          <span className="icon is-small is-left">
+                            <i class="fas fa-heart"></i>
+                          </span>
                       </div>
                    </div>
                    <div className='field'>
-                        <div className='control'>
-                                <input className='input' type='type' name='attributeName' placeholder='Enter Attribute Names'></input>
+                        <div className='control has-icons-left'>
+                            <input className='input' type='type' name='attributeName' placeholder='Enter Attribute Names'></input>
+                            <span className="icon is-small is-left">
+                                <i class="fas fa-tags"></i>
+                            </span>
                         </div>
                    </div>
                    <button onClick={createNftHandler} className='button is-primary'>Create</button>
