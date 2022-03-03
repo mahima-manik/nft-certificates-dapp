@@ -313,15 +313,18 @@ const NFTCertificate = () => {
   const issueThisNft = async (event) => {
     var formSection = document.getElementById("issueNftFormSection");
     var form = document.getElementById("issueNftForm");
+
+    /* Clear the form and remove the previous attributes */
     if (formSection.style.display == "block") {
-      formSection.style.display = "none";
       document.getElementsByName("receiverAddress")[0].value = "";
       document.getElementsByName("nftName")[0].value = "";
       document.getElementsByName("nftDescription")[0].value = "";
       let attributes = document.getElementById("attributes");
       form.removeChild(attributes);
-      return;
     }
+
+    /* Move to mint section by simulating the click */
+    document.querySelectorAll(".tabs li")[1].click();
 
     let contractAddress = event.target.getAttribute("contractAddress");
     let name = event.target.getAttribute("name");
