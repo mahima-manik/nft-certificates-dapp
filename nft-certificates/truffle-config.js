@@ -76,7 +76,7 @@
       mainnet: {
            provider: () => new HDWalletProvider(
               process.env.SECRET_KEY,
-              'https://mainnet.infura.io/v3/7b7cc668e6fe4659b493b38a6e6ab874'
+              process.env.MAINNET_URL
            ),
            network_id: 1,       // Ropsten's id
            gas: 2000000,        // Ropsten has a lower block limit than mainnet

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "compile": "solcjs --abi --include-path node_modules/ --base-path . blockchain/contracts/Management.sol --output-dir blockchain/build"
+    "compile": "solcjs --abi --include-path ../nft-certificates-app/node_modules/ --base-path ../nft-certificates ../nft-certificates/contracts/Management.sol  --output-dir blockchain/build"
   },
   "dependencies": {
     "@metamask/detect-provider": "^1.2.0",
