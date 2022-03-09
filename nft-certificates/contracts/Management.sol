@@ -4,32 +4,34 @@ pragma solidity 0.8.12;
 import "./Certificate.sol";
 
 contract Management {
+    /* Contains all the NFT addresses created by a particular address */
     struct NftInfo {
-        mapping (address => uint) count;
         address[] addresses;
-        address owner;
     }
 
     event NftCreated(address tokenAddress);
-    event NftIssued(address receiver, address tokenAddress, uint tokenId);
-    event ViewCount(uint256 total);
-    
-    mapping (address => NftInfo) nftadmins;
+    event NftIssued(address receiver, address tokenAddress, uint256 tokenId);
+
+    /* mappings of NFT admin address to contract addresses */
+    mapping(address => NftInfo) nftadmins;
 
     /*
         Creates a new NFT contract
         @param _name
         @param _symbol
     */
-    function create_nft (string memory _name, string memory _symbol, string[] memory _field_names) external {        
+    function create_nft(
+        string memory _name,
+        string memory _symbol,
+        string[] memory _field_names
+    ) external {
         Certificate cert = new Certificate(_name, _symbol, _field_names); // returns bytecode
+        
         // Not storing bytecode, as it will become expensive
         address certAddress = cert.contractAddress();
 
         NftInfo storage nftInfo = nftadmins[msg.sender];
-        nftInfo.count[certAddress] = 0;
         nftInfo.addresses.push(certAddress);
-        nftInfo.owner = msg.sender;
 
         emit NftCreated(certAddress);
     }
@@ -40,29 +42,37 @@ contract Management {
         @param nftAddress Address of NFT contract
         @param tokenURI NFT to be minted
     */
-    function issue_certificate (address receiver, address nftAddress, string memory tokenURI) external {
-        NftInfo storage nftInfo = nftadmins[msg.sender];
-        require (nftInfo.owner == msg.sender, "Do not have authority to issue this token");
+    function issue_certificate(
+        address receiver,
+        address nftAddress,
+        string memory tokenURI
+    ) external {
         Certificate certificate = Certificate(nftAddress);
-        uint tokenId = certificate.mint(tokenURI, receiver);
-        nftInfo.count[nftAddress] += 1;
+        uint256 tokenId = certificate.mint(tokenURI, receiver);
         emit NftIssued(receiver, nftAddress, tokenId);
     }
 
     /*
         Returns a list of all the NFT contracts created by msg.sender
     */
-    function get_nft_addresses () external view returns (address[] memory, 
-        string[] memory, string[] memory, uint256[] memory)   {
-        
+    function get_nft_addresses()
+        external
+        view
+        returns (
+            address[] memory,
+            string[] memory,
+            string[] memory,
+            uint256[] memory
+        )
+    {
         NftInfo storage nftInfo = nftadmins[msg.sender];
         address[] memory addresses = nftInfo.addresses;
-        uint len = addresses.length;
+        uint256 len = addresses.length;
         string[] memory tokenNames = new string[](len);
         string[] memory tokenSymbols = new string[](len);
         uint256[] memory totalToken = new uint256[](len);
-        
-        for (uint i=0; i<len; i++)  {
+
+        for (uint256 i = 0; i < len; i++) {
             Certificate certificate = Certificate(addresses[i]);
             tokenNames[i] = certificate.name();
             tokenSymbols[i] = certificate.symbol();
@@ -71,10 +81,17 @@ contract Management {
         return (addresses, tokenNames, tokenSymbols, totalToken);
     }
 
-    function get_nft_attributes(address nftAddress) external view returns (string[] memory)  {
-        NftInfo storage nftInfo = nftadmins[msg.sender];
-        require (nftInfo.owner == msg.sender, "Do not have authority to view attributes of this token");
+    /* Given NFT address, returns a list of attributes for the same */
+    function get_nft_attributes(address nftAddress)
+        external
+        view
+        returns (string[] memory)
+    {
         Certificate certificate = Certificate(nftAddress);
+        require(
+            certificate.owner() == msg.sender,
+            "Do not have authority to view attributes of this token"
+        );
         return certificate.getAttributes();
     }
 
@@ -83,18 +100,19 @@ contract Management {
         @return a list of all the NFT holders of this sender
 
     */
-    function get_nft_holders(address certAddress) external view returns(address[] memory) {
-
-        NftInfo storage nftInfo = nftadmins[msg.sender];
-        uint totalTokens = nftInfo.count[certAddress];
+    function get_nft_holders(address certAddress)
+        external
+        view
+        returns (address[] memory)
+    {
+        Certificate certificate = Certificate(certAddress);
+        uint256 totalTokens = certificate.getTotalTokens();
 
         address[] memory nftHolders = new address[](totalTokens);
-        Certificate certificate = Certificate(certAddress);
-        for (uint i=1; i <= totalTokens; i++)   {
+        for (uint256 i = 1; i <= totalTokens; i++) {
             address certOwner = certificate.ownerOf(i);
-            nftHolders[i-1] = certOwner;
+            nftHolders[i - 1] = certOwner;
         }
         return nftHolders;
     }
-
 }
