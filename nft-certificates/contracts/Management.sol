@@ -25,7 +25,7 @@ contract Management {
         string memory _symbol,
         string[] memory _field_names
     ) external {
-        Certificate cert = new Certificate(_name, _symbol, _field_names); // returns bytecode
+        Certificate cert = new Certificate(_name, _symbol, _field_names, msg.sender); // returns bytecode
         
         // Not storing bytecode, as it will become expensive
         address certAddress = cert.contractAddress();
@@ -48,7 +48,7 @@ contract Management {
         string memory tokenURI
     ) external {
         Certificate certificate = Certificate(nftAddress);
-        uint256 tokenId = certificate.mint(tokenURI, receiver);
+        uint256 tokenId = certificate.mint(tokenURI, receiver, msg.sender);
         emit NftIssued(receiver, nftAddress, tokenId);
     }
 

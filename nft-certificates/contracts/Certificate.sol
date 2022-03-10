@@ -11,8 +11,8 @@ contract Certificate is ERC721URIStorage {
         string[] names;
     }
 
-    modifier onlyOwner() {
-        require(owner == msg.sender, "Only NFT owner is allowed to mint");
+    modifier onlyOwner(address sender) {
+        require(owner == sender, "Only NFT owner is allowed to mint");
         _;
     }
 
@@ -24,10 +24,12 @@ contract Certificate is ERC721URIStorage {
     constructor(
         string memory _name,
         string memory _symbol,
-        string[] memory _field_names
+        string[] memory _field_names,
+        address _owner
     ) ERC721(_name, _symbol) {
         create_attributes(_field_names);
         contractAddress = address(this);
+        owner = _owner;
     }
 
     /* 
@@ -37,9 +39,9 @@ contract Certificate is ERC721URIStorage {
         attribute.names = _field_names;
     }
 
-    function mint(string memory tokenURI, address recipient)
+    function mint(string memory tokenURI, address recipient, address sender)
         external
-        onlyOwner
+        onlyOwner(sender)
         returns (uint256)
     {
         _tokenIds.increment();

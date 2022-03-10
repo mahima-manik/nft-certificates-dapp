@@ -150,7 +150,6 @@ const NFTCertificate = () => {
       const tokenAddress =
         result.events["NftCreated"].returnValues["tokenAddress"];
       console.log(tokenAddress);
-      getNftAttributes(tokenAddress);
       updateText(
         "CreateNftMessage",
         "success",
