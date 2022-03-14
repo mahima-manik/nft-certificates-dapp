@@ -16,7 +16,7 @@ const NFTCertificate = () => {
   const [web3, setWeb3] = useState(null);
   const [address, setAddress] = useState("");
   const [myContract, setMyContract] = useState(null);
-  const [fileUrl, updateFileUrl] = useState("No file uploaded");
+  const [nftFile, updateNftFile] = useState(null);
 
   const client = create("https://ipfs.infura.io:5001/api/v0");
 
@@ -184,12 +184,24 @@ const NFTCertificate = () => {
     });
 
     // TODO: write precondition test for all
-    if (fileUrl == "No file uploaded") {
+    if (nftFile == null) {
       updateText("IssueNftMessage", "danger", "Please upload NFT file");
       return;
     }
+    try {
+      const added = await client.add(nftFile);
+      const url = `https://ipfs.infura.io/ipfs/${added.path}`;
+      updateText(
+        "IssueNftMessage",
+        "success",
+        "Keep waiting! NFT image URI: " + url
+      );
+    } catch (error) {
+      updateText("IssueNftMessage", "danger", error.message);
+      return
+    }
 
-    json["image"] = fileUrl;
+    json["image"] = url;
 
     let attributes = [];
     let attrs = document.querySelectorAll("#attributes input");
@@ -210,7 +222,7 @@ const NFTCertificate = () => {
       updateText(
         "IssueNftMessage",
         "success",
-        "Keep waiting! NFT URI: " + tokenURI
+        "Keep waiting! NFT metadata URI: " + tokenURI
       );
     } catch (error) {
       updateText("IssueNftMessage", "danger", error.message);
@@ -299,14 +311,9 @@ const NFTCertificate = () => {
 
   async function updateImage(e) {
     const file = e.target.files[0];
-    try {
-      const added = await client.add(file);
-      const url = `https://ipfs.infura.io/ipfs/${added.path}`;
-      updateFileUrl(url);
-      return url;
-    } catch (error) {
-      console.log("Error uploading file: ", error.message);
-    }
+    updateNftFile(file);
+    document.getElementsByClassName('file-name')[0].innerHTML = file.name
+    console.log(file.name)
   }
 
   const issueThisNft = async (event) => {
@@ -582,7 +589,7 @@ const NFTCertificate = () => {
                   </span>
                   <span class="file-label">Choose your NFT</span>
                 </span>
-                <span class="file-name">{fileUrl}</span>
+                <span class="file-name">File Name</span>
               </label>
             </div>
           </div>
