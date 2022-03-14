@@ -188,9 +188,10 @@ const NFTCertificate = () => {
       updateText("IssueNftMessage", "danger", "Please upload NFT file");
       return;
     }
+    let url = ''
     try {
       const added = await client.add(nftFile);
-      const url = `https://ipfs.infura.io/ipfs/${added.path}`;
+      url = `https://ipfs.infura.io/ipfs/${added.path}`;
       updateText(
         "IssueNftMessage",
         "success",
